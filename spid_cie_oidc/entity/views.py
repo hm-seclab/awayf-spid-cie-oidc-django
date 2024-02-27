@@ -95,27 +95,28 @@ def resolve_entity_statement(request, format: str = "jose"):
     entity = TrustChain.objects.filter(**_q).first()
 
     # only with privileged actors with staff token can triggers a new trust chain
-    staff_token_head = request.headers.get("Authorization", None)
-    if staff_token_head:
-        staff_token = StaffToken.objects.filter(
-            token = staff_token_head
-        ).first()
-        if staff_token.is_valid:
-            try:
-                # a staff token get a fresh trust chain on each call
-                entity = get_or_create_trust_chain(
-                    httpc_params=HTTPC_PARAMS,
-                    required_trust_marks = getattr(
-                        settings, "OIDCFED_REQUIRED_TRUST_MARKS", []
-                    ),
-                    subject=_q["sub"],
-                    trust_anchor=_q["trust_anchor__sub"],
-                    force = True
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed privileged Trust Chain creation for {_q['sub']}: {e}"
-                )
+    # skip this check for A-WAYF
+    #staff_token_head = request.headers.get("Authorization", None)
+    #if staff_token_head:
+    #    staff_token = StaffToken.objects.filter(
+    #        token = staff_token_head
+    #    ).first()
+    #    if staff_token.is_valid:
+    try:
+        # a staff token get a fresh trust chain on each call
+        entity = get_or_create_trust_chain(
+            httpc_params=HTTPC_PARAMS,
+            required_trust_marks = getattr(
+                settings, "OIDCFED_REQUIRED_TRUST_MARKS", []
+            ),
+            subject=_q["sub"],
+            trust_anchor=_q["trust_anchor__sub"],
+            force = True
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed privileged Trust Chain creation for {_q['sub']}: {e}"
+        )
 
     if not entity:
         raise Http404("entity not found.")
