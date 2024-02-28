@@ -274,7 +274,7 @@ class TrustChainBuilder:
                     continue
                 elif (self.trust_anchor.sub == stat.sub == stat.iss):
                     ta_ec = stat.jwt
-                    continue
+                    #continue
 
             if stat.verified_descendant_statements:
                 res.extend(
